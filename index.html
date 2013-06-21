@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+    <head>
+        <!-- Spotify CSS files -->
+        <link rel="stylesheet" type="text/css" href="sp://resources/css/eve.css">
+        <link rel="stylesheet" type="text/css" href="sp://resources/css/api.css">
+        <link rel="stylesheet" type="text/css" href="sp://resources/css/player.css">
+        <link rel="stylesheet" type="text/css" href="sp://resources/css/list.css">
+
+        <!-- Project CSS files -->
+        <link rel="stylesheet" type="text/css" href="css/main.css">
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="index" class="section">
+                <h1>MyTunes Library</h1>
+                <input type="text" name="lfm-name" id="lfm-name" placeholder="Last.fm Username" />
+                <button id="hit-lfm">Get Music</button>
+                <h1>Top Music:</h1>
+                <ul id="topalbums"></ul>
+            </div>
+        </div>
+        <script src="/js/jquery.js"></script>
+        <script src="/js/underscore.js"></script>
+        <script type="text/javascript">
+          $(document).ready(function(){
+              // api key 1c73c492595e398bb2ee64465c67026a
+              $.ajax({
+                "url" : "http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user=yono&api_key=1c73c492595e398bb2ee64465c67026a&format=json",
+                "dataType": "json",
+                "success": function(data){
+                  $.each(data.topalbums.album, function(k,v){
+                    $("#topalbums").append("<li>"+v.artist.name+" - "+v.name+"</li>"); 
+                  });
+                }
+
+              });
+          });
+        </script>
+    </body>
+</html>
