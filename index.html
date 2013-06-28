@@ -16,25 +16,84 @@
                 <input type="text" name="lfm-name" id="lfm-name" placeholder="Last.fm Username" />
                 <button id="hit-lfm">Get Music</button>
                 <h1>Top Music:</h1>
-                <ul id="topalbums"></ul>
+                <select style="width:50%" id="artistSelect" size="5">
+                  <option value="all" selected>All</option>
+                </select>
+                <select id="albumSelect" style="width:50%" size="5">
+                </select>
+                <div id="multiple-tracks-player"></div><div id="multiple-tracks-list"></div>
             </div>
         </div>
         <script src="/js/jquery.js"></script>
         <script src="/js/underscore.js"></script>
         <script type="text/javascript">
+          var musicData;
           $(document).ready(function(){
               // api key 1c73c492595e398bb2ee64465c67026a
+              musicData = {
+                artists: {}
+              }
               $.ajax({
                 "url" : "http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user=yono&api_key=1c73c492595e398bb2ee64465c67026a&format=json",
                 "dataType": "json",
                 "success": function(data){
                   $.each(data.topalbums.album, function(k,v){
+                    if (musicData.artists[v.artist.name]){
+                      musicData.artists[v.artist.name].push(v.name);
+                    } else {
+                    musicData.artists[v.artist.name] = [v.name];
+                    }
                     $("#topalbums").append("<li>"+v.artist.name+" - "+v.name+"</li>"); 
+                  });
+                  _.chain(musicData.artists).keys().sort().each(function(v){$("#artistSelect").append('<option value="'+v+'">'+v+'</option>')});
+                  console.log(musicData);
+                  selectArtist("all");
+                  $('#artistSelect').on('change', function() {
+                    selectArtist(this.value);
+                  });
+                  $('#albumSelect').on('change', function() {
+                    console.log("searching for "+this.value);
+                    searchAlbum(this.value);
                   });
                 }
 
               });
-          });
-        </script>
+
+              var selectArtist = function(artist){
+                $("#albumSelect").html("");
+                var albums;
+                if (artist == "all"){
+                  albums = _.chain(musicData.artists).values().flatten();
+                } else {
+                  albums = musicData.artists[artist]; 
+                }
+                var allAlbums = _.chain(albums).sort().value();
+                _.each(allAlbums, function(k,v){
+                  $("#albumSelect").append('<option value="'+k+'">'+k+'</option>');
+                });
+              };
+              var sp = getSpotifyApi();
+              var views = sp.require('$api/views');
+              var models = sp.require('$api/models');
+              var searchAlbum = function(searchTerm){
+                var search = new models.Search(searchTerm);
+                search.localResults = models.LOCALSEARCHRESULTS.APPEND;
+                search.observe(models.EVENT.CHANGE, function() {
+                    var results = search.albums;
+                    console.log(results);
+                    if (results.length != 0) loadAlbum(results[0].data.uri);
+                    else  $("#multiple-tracks-list").html(searchTerm+" doesn't seem playable on Spotify. Sorry!");
+                });
+                search.appendNext();
+              }
+              var loadAlbum = function(uri){
+                var myAlbum = new models.Album.fromURI(uri);
+                var list = new views.List(myAlbum);
+                list.node.classList.add('sp-light');
+                $("#multiple-tracks-list").html("");
+                document.getElementById('multiple-tracks-list').appendChild(list.node);
+              };
+            });
+          </script>
     </body>
 </html>
