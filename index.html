@@ -15,11 +15,11 @@
                 <h1>MyTunes Library</h1>
                 <input type="text" name="lfm-name" id="lfm-name" placeholder="Last.fm Username" />
                 <button id="hit-lfm">Get Music</button>
+                <span id="lfmFail" style="color:red"></span>
                 <h1>Top Music:</h1>
-                <select style="width:50%" id="artistSelect" size="5">
-                  <option value="all" selected>All</option>
+                <select style="width:50%" id="artistSelect" size="8">
                 </select>
-                <select id="albumSelect" style="width:50%" size="5">
+                <select id="albumSelect" style="width:49%" size="8">
                 </select>
                 <div id="multiple-tracks-player"></div><div id="multiple-tracks-list"></div>
             </div>
@@ -28,15 +28,30 @@
         <script src="/js/underscore.js"></script>
         <script type="text/javascript">
           var musicData;
+              var currList;
+              var myAlbum;
           $(document).ready(function(){
               // api key 1c73c492595e398bb2ee64465c67026a
-              musicData = {
-                artists: {}
-              }
+              var loadLFM = function(userName){
               $.ajax({
-                "url" : "http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user=yono&api_key=1c73c492595e398bb2ee64465c67026a&format=json",
+                "url" : "http://ws.audioscrobbler.com/2.0/?method=user.gettopalbums&user="+userName+"&api_key=1c73c492595e398bb2ee64465c67026a&format=json&limit=200",
                 "dataType": "json",
                 "success": function(data){
+                  if (data.error) {
+                    $("#lfmFail").html(data.message);
+                    return;
+                  }
+                  else if (data.topalbums.total === "0") { 
+                    $("#lfmFail").html("No music found for "+data.topalbums.user);
+                    return;
+                  } else {
+                    $("#lfmFail").html("");
+                  }
+                  // reset data
+                  musicData = {
+                    artists: {}
+                  }
+                  $("#artistSelect").html("<option value='all'>All</option>");
                   $.each(data.topalbums.album, function(k,v){
                     if (musicData.artists[v.artist.name]){
                       musicData.artists[v.artist.name].push(v.name);
@@ -55,9 +70,16 @@
                     console.log("searching for "+this.value);
                     searchAlbum(this.value);
                   });
+                  $("#albumSelect").on('dblclick', function(){
+                   console.log(currList); 
+                   setTimeout(function(){models.player.playTrackWithContext(false, myAlbum, -1)}, 200);
+                  });
                 }
 
               });
+              };
+              loadLFM("Yono");
+              $("#hit-lfm").click(function(){ loadLFM( $("#lfm-name").val() ) });
 
               var selectArtist = function(artist){
                 $("#albumSelect").html("");
@@ -81,17 +103,19 @@
                 search.observe(models.EVENT.CHANGE, function() {
                     var results = search.albums;
                     console.log(results);
+                    // todo make sure that artist matches before loading incorrect album
                     if (results.length != 0) loadAlbum(results[0].data.uri);
                     else  $("#multiple-tracks-list").html(searchTerm+" doesn't seem playable on Spotify. Sorry!");
                 });
                 search.appendNext();
               }
               var loadAlbum = function(uri){
-                var myAlbum = new models.Album.fromURI(uri);
-                var list = new views.List(myAlbum);
-                list.node.classList.add('sp-light');
+                myAlbum = new models.Album.fromURI(uri);
+                delete currList;
+                currList = new views.List(myAlbum);
+                currList.node.classList.add('sp-light');
                 $("#multiple-tracks-list").html("");
-                document.getElementById('multiple-tracks-list').appendChild(list.node);
+                document.getElementById('multiple-tracks-list').appendChild(currList.node);
               };
             });
           </script>
