@@ -32,6 +32,7 @@
           // referenced classes: views.player, models.player, views.list, models.search, models.album, models.library
           var musicData;
           var myAlbum;
+          var oldList = null;
           //console.log(List);
          // , Albumlist;
           $(document).ready(function(){
@@ -75,7 +76,7 @@
                     searchAlbum(this.value);
                   });
                   $("#albumSelect").on('dblclick', function(){
-                   console.log(currList); 
+                   //console.log(currList); 
                    setTimeout(function(){models.player.playTrackWithContext(false, myAlbum, -1)}, 200);
                   });
                 }
@@ -103,79 +104,90 @@
                 // definitely TODO cache this shit
                 var searchResult = Search.search(searchTerm);
                 console.log(searchResult);
-                searchResult.albums.snapshot(0, 2).done(function(snapshot) {
+                searchResult.albums.snapshot(0, 10).done(function(snapshot) {
                   console.log('Found', snapshot.length, 'result(s) for', searchResult.query);
+                  console.log(snapshot);
                   if (snapshot.length == 0) {
-            //    $("#multiple-tracks-list").html("No Results");
                   $("#multiple-tracks-list").html("No albums found for "+searchResult.query);
                   return;
                   }
-                  //console.log('Here are the first 2:');
-                  snapshot.loadAll('name').done(function(albums) {
+                  
+                  snapshot.loadAll('discs').done(function(albums){ 
+                    console.log(albums);
 //                    console.log(albums[0].uri);
-                    addList(albums[0]);
+                   // console.log($("#multiple-tracks-list").html());
+                    console.log(oldList);
+                    //if (oldList != null) oldList.init();
+                   newList(albums[0].uri);
+                    console.log($("#multiple-tracks-list").html());
              //       /* albums.forEach(function(album) {
              //         console.log(album);
              //         console.log(album.name, album.uri, album.artists[0].name);
             //        }); */
-                  });
+                });
                 });
               }; 
-              var loadAlbum = function(uri){
-                addList(uri);
-                return;
-                console.log("loading album");
-                var myAlbum = models.Album.fromURI(uri);
-                console.log(uri);
-                var currList = List.forAlbum(myAlbum);
-               // currList.node.classList.add('sp-light');
-               // $("#multiple-tracks-list").html("");
-              //  document.getElementById('multiple-tracks-list').appendChild(currList.node);
-               document.body.appendChild(currList.node);
-                currList.init();
-              };
+
               var loadSpotify = function(uri){
                 var usrAlbums = _.groupBy(models.library.albums, function(v){ return v.data.artist.name })
               }
+
               var addList = function(uri){
                 console.log(uri);
                 $("#multiple-tracks-list").html("Testing");
-            //    if (uri){
-           //       var album = models.Album.fromURI(uri);
-           //     } else {
-           //       var album = models.Album.fromURI('spotify:album:5fTBlCZFI4zYOdJn1NrLgt');
-           //     }
             //    setTimeout(function(){
+                uri.load('discs').done(function(album){
+                  console.log(album);
+                })
                 var Albumlist = List.forAlbum(uri);
-                console.log(Albumlist);
                 document.getElementById('multiple-tracks-list').appendChild(Albumlist.node);
                 Albumlist.init();
                 //Albumlist.refresh();
                 console.log(Albumlist);
+                return Albumlist;
           //      }, 200);
               }
               var newList = function(uri){
-                var album = models.Album.fromURI(uri);
-                console.log(Albumlist);
-                console.log(Albumlist.setItem);
-                console.log(Albumlist._oldParentNode);
-                document.getElementById('multiple-tracks-list').appendChild(Albumlist._oldParentNode);
-                Albumlist.init();
+                console.log(uri);
+             //   var album = models.Album.fromURI(uri);
+             //   document.getElementById('multiple-tracks-list').appendChild(Albumlist.node);
+             //   Albumlist.init();
+
+                var al2 = models.Album.fromURI(uri).load('discs').done( function(disc){
+                  console.log(disc);
+                  console.log(list);
+                  list.setItem(disc);
+                  list.init();
+                });
              //   Albumlist.refresh();
-                //Albumlist.more();
               //  console.log(Albumlist);
 
+              }
+              var firstList = function(){
+                var album = models.Album.fromURI('spotify:album:6iBEe3qEjdIRz38swH7jT0');
+                console.log(album);
+                list = List.forAlbum(album);
+                document.body.appendChild(list.node);
+                list.init();
+                newList('spotify:album:42oggZmZI9b5BOPMGvYuXh');
               }
               var testList = function(){
                 var album = models.Album.fromURI('spotify:album:6iBEe3qEjdIRz38swH7jT0');
                 console.log(album);
-                var list = List.forAlbum(album);
+                list = List.forAlbum(album);
                 document.body.appendChild(list.node);
                 list.init();
-                var al2 = models.Album.fromURI('spotify:album:5fTBlCZFI4zYOdJn1NrLgt');
-                list.setItem(al2);
+                var al2 = models.Album.fromURI('spotify:album:0X7WyEKdm5afGj1fmD7Blx').load('discs').done( function(disc){
+                    
+                    console.log(disc);
+                list.setItem(disc);
+                var al3 = models.Album.fromURI('spotify:album:5z090LQztiqh13wYspQvKQ').load('discs').done( function(disc){
+                  list.setItem(disc);
+                  });
+                    });
               }
-            //  testList();
+             firstList();
+          //   testList();
             //  addList('spotify:album:5fTBlCZFI4zYOdJn1NrLgt');
             });
             });
