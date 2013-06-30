@@ -15,6 +15,8 @@
                 <h1>MyTunes Library</h1>
                 <input type="text" name="lfm-name" id="lfm-name" placeholder="Last.fm Username" />
                 <button id="hit-lfm">Get Music</button>
+                <button id="save-lib">Save Library</button>
+                <button id="load-lib">Load Library</button>
                 <span id="lfmFail" style="color:red"></span>
                 <h1>Top Music:</h1>
                 <select style="width:50%" id="artistSelect" size="8">
@@ -51,14 +53,13 @@
                   musicData = {
                     artists: {}
                   }
-                  $("#artistSelect").html("<option value='all'>All</option>");
+                  $("#artistSelect").html("<option value='all' selected>All</option>");
                   $.each(data.topalbums.album, function(k,v){
                     if (musicData.artists[v.artist.name]){
                       musicData.artists[v.artist.name].push(v.name);
                     } else {
                     musicData.artists[v.artist.name] = [v.name];
                     }
-                    $("#topalbums").append("<li>"+v.artist.name+" - "+v.name+"</li>"); 
                   });
                   _.chain(musicData.artists).keys().sort().each(function(v){$("#artistSelect").append('<option value="'+v+'">'+v+'</option>')});
                   console.log(musicData);
@@ -68,7 +69,7 @@
                   });
                   $('#albumSelect').on('change', function() {
                     console.log("searching for "+this.value);
-                    searchAlbum(this.value);
+                    searchAlbum(this.value, $("#artistSelect").val());
                   });
                   $("#albumSelect").on('dblclick', function(){
                    console.log(currList); 
@@ -78,8 +79,22 @@
 
               });
               };
+              var loadLibrary = function(){
+                  $("#artistSelect").html("<option value='all' selected>All</option>");
+                  _.chain(musicData.artists).keys().sort().each(function(v){$("#artistSelect").append('<option value="'+v+'">'+v+'</option>')});
+                  selectArtist("all");
+              }
               loadLFM("Yono");
               $("#hit-lfm").click(function(){ loadLFM( $("#lfm-name").val() ) });
+              $("#save-lib").click(function(){
+                localStorage.setItem("lib", JSON.stringify(musicData));
+              });
+              $("#load-lib").click(function(){
+                musicData = JSON.parse(localStorage.getItem("lib"));
+                if (!jQuery.isEmptyObject(musicData.artists)){
+                  loadLibrary();
+                }
+              });
 
               var selectArtist = function(artist){
                 $("#albumSelect").html("");
@@ -97,14 +112,27 @@
               var sp = getSpotifyApi();
               var views = sp.require('$api/views');
               var models = sp.require('$api/models');
-              var searchAlbum = function(searchTerm){
-                var search = new models.Search(searchTerm);
+              var searchAlbum = function(searchTerm, artist){
+                console.log(artist);
+                var searchTermQuery = (artist == "all") ? searchTerm : artist +' '+ searchTerm;
+                var search = new models.Search(searchTermQuery);
                 search.localResults = models.LOCALSEARCHRESULTS.APPEND;
                 search.observe(models.EVENT.CHANGE, function() {
                     var results = search.albums;
                     console.log(results);
-                    // todo make sure that artist matches before loading incorrect album
-                    if (results.length != 0) loadAlbum(results[0].data.uri);
+                    if (results.length != 0) {
+                      var i = 0;
+                      // todo fix this too look for artist name in musicData
+                      if (artist != "all"){
+                        for (i; i<results.length; i++){
+                        console.log(results[i].data.artist.name);
+                          if (results[i].data.artist.name == artist) break;
+                          i++;
+                        }
+                      }
+                      if (i != results.length) loadAlbum(results[i].data.uri);
+                      else  $("#multiple-tracks-list").html(searchTerm+" doesn't seem playable on Spotify. Sorry!");
+                    }
                     else  $("#multiple-tracks-list").html(searchTerm+" doesn't seem playable on Spotify. Sorry!");
                 });
                 search.appendNext();
@@ -117,6 +145,23 @@
                 $("#multiple-tracks-list").html("");
                 document.getElementById('multiple-tracks-list').appendChild(currList.node);
               };
+              var loadSpotify = function(uri){
+
+              var toplist = new models.Toplist();
+              toplist.matchType = models.TOPLISTMATCHES.ALBUMS;
+            //  toplist.userName = feelthebeat96;// TOPLISTUSER_CURRENT;
+              
+
+              toplist.observe(models.EVENT.CHANGE, function() {
+
+                  console.log("Spotify album toplist:")
+                    toplist.results.forEach(function(album) {
+                          console.log(album);
+                            });
+                    });
+
+              toplist.run();
+              }();
             });
           </script>
     </body>
