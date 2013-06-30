@@ -20,10 +20,9 @@
 		}
 	],
 	"Dependencies": {
-	  "api": "0.2.3",
-	  "util": "0.1.0",
-	  "resources": "0.2.2"
-  },
+          "api": "1.0.0",
+          "views": "1.35.0"
+        },
 	"RequiredInterface": 1,
 	"RequiredPermissions": [
 	    "http://amsterdam.last.fm"

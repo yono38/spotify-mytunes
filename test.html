@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+    <head>
+        <!-- Spotify CSS files -->
+        <style>
+        @import url('$views/css/buttons.css');
+        @import url('$views/css/image.css');
+        @import url('$views/css/list.css');
+      </style>
+        <!-- Project CSS files -->
+        <link rel="stylesheet" type="text/css" href="css/main.css">
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="index" class="section">
+                <h1>MyTunes Library</h1>
+                <input type="text" name="lfm-name" id="lfm-name" placeholder="Last.fm Username" />
+                <button id="hit-lfm">Get Music</button>
+                <span id="lfmFail" style="color:red"></span>
+                <h1>Top Music:</h1>
+                <select style="width:50%" id="artistSelect" size="8">
+                </select>
+                <select id="albumSelect" style="width:49%" size="8">
+                </select>
+                <div id="multiple-tracks-player"></div><div id="multiple-tracks-list"></div>
+
+            </div>
+        </div>
+        <script src="/js/jquery.js"></script>
+        <script src="/js/underscore.js"></script>
+        <script type="text/javascript">
+          require(['$api/models', '$views/list#List', '$api/search#Search'], function(models, List, Search) {
+              var testList = function(){
+                var album = models.Album.fromURI('spotify:album:6iBEe3qEjdIRz38swH7jT0');
+                console.log(album.toString());
+                var list = List.forAlbum(album);
+                console.log(list.toString());
+                document.body.appendChild(list.node);
+                list.init();
+                var al2 = models.Album.fromURI('spotify:album:5fTBlCZFI4zYOdJn1NrLgt');
+                console.log(list.setItem);
+                list.setItem(al2);
+              }
+              testList();
+            });
+          </script>
+    </body>
+</html>

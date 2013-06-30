@@ -4,7 +4,8 @@ spotify-mytunes
 Improved Music Library for Spotify
 
 ==TODO==
--Split artist from album
 -Load music from spotify favs
--Link to spotify music
--Create browsing menus
+-Save to localStorage
+-Make sure search returns correct album
+-Allow manual re-search to add correct album ex if album year at end
+-Allow removal/addition of albums
