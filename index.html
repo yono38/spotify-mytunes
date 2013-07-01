@@ -215,7 +215,23 @@
                     console.log(results);
                     $("#searchResults").html("");
                     _(results).each(function(album){
-                      $("#searchResults").append("<li id='"+album.data.uri+"'>"+album.data.artist.name+" - "+album.data.name+"<button style='background:#7985D4;border-radius:5px' class='addAlbum' data-uri='"+album.data.uri+"'>Add</button></li>");
+                      $("#searchResults").append("<li id='"+album.data.uri+"'>"+album.data.artist.name+" - "+album.data.name+"<button style='background:#7985D4;border-radius:5px' class='addAlbum' data-album='"+album.data.name+"' data-artist='"+album.data.artist.name+"' data-uri='"+album.data.uri+"'>Add</button></li>");
+                      });
+                      $(".addAlbum").on("click", function(){
+                        console.log($(this).attr("data-uri"));
+                        var albumName = $(this).attr("data-album");
+                        if (musicData.artists[$(this).attr("data-artist")]){
+                        musicData.artists[$(this).attr("data-artist")][$(this).attr("data-album")] = { name: $(this).attr("data-album"), uri: $(this).attr("data-uri")};
+                        } else {
+                        musicData.artists[$(this).attr("data-artist")] = 
+                        {
+                          albumName:
+                          { 
+                            name: $(this).attr("data-album"), 
+                            uri: $(this).attr("data-uri")
+                            }
+                        };
+                        }
                       });
                     });
                   search.appendNext();
