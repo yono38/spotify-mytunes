@@ -55,60 +55,39 @@
                   }
                   $("#artistSelect").html("<option value='all' selected>All</option>");
                   $.each(data.topalbums.album, function(k,v){
-                    if (musicData.artists[v.artist.name]){
-                      musicData.artists[v.artist.name].push(v.name);
-                    } else {
-                    musicData.artists[v.artist.name] = [v.name];
+                    if (!musicData.artists[v.artist.name]){
+                    musicData.artists[v.artist.name] = {};
                     }
+                    musicData.artists[v.artist.name][v.name] = {"name":v.name};
                   });
                   _.chain(musicData.artists).keys().sort().each(function(v){$("#artistSelect").append('<option value="'+v+'">'+v+'</option>')});
                   console.log(musicData);
                   selectArtist("all");
-                  $('#artistSelect').on('change', function() {
-                    selectArtist(this.value);
-                  });
-                  $('#albumSelect').on('change', function() {
-                    console.log("searching for "+this.value);
-                    searchAlbum(this.value, $("#artistSelect").val());
-                  });
-                  $("#albumSelect").on('dblclick', function(){
-                   console.log(currList); 
-                   setTimeout(function(){models.player.playTrackWithContext(false, myAlbum, -1)}, 200);
-                  });
                 }
 
               });
+              };
+              var selectArtist = function(artist){
+                $("#albumSelect").html("");
+                var albums;
+                if (artist == "all"){
+                  albums = _.chain(musicData.artists).values().flatten().map(function(v,k){return _(v).values()}).flatten();
+                } else {
+                  albums = musicData.artists[artist]; 
+                }
+                var allAlbums = _.chain(albums).sortBy(function(n){return n.name}).value();
+                console.log(albums);
+                _.each(allAlbums, function(k,v){
+                  $("#albumSelect").append('<option data-uri="'+k.uri+'" value="'+k.name+'">'+k.name+'</option>');
+                });
               };
               var loadLibrary = function(){
                   $("#artistSelect").html("<option value='all' selected>All</option>");
                   _.chain(musicData.artists).keys().sort().each(function(v){$("#artistSelect").append('<option value="'+v+'">'+v+'</option>')});
                   selectArtist("all");
               }
-              loadLFM("Yono");
-              $("#hit-lfm").click(function(){ loadLFM( $("#lfm-name").val() ) });
-              $("#save-lib").click(function(){
-                localStorage.setItem("lib", JSON.stringify(musicData));
-              });
-              $("#load-lib").click(function(){
-                musicData = JSON.parse(localStorage.getItem("lib"));
-                if (!jQuery.isEmptyObject(musicData.artists)){
-                  loadLibrary();
-                }
-              });
+              
 
-              var selectArtist = function(artist){
-                $("#albumSelect").html("");
-                var albums;
-                if (artist == "all"){
-                  albums = _.chain(musicData.artists).values().flatten();
-                } else {
-                  albums = musicData.artists[artist]; 
-                }
-                var allAlbums = _.chain(albums).sort().value();
-                _.each(allAlbums, function(k,v){
-                  $("#albumSelect").append('<option value="'+k+'">'+k+'</option>');
-                });
-              };
               var sp = getSpotifyApi();
               var views = sp.require('$api/views');
               var models = sp.require('$api/models');
@@ -130,10 +109,14 @@
                           i++;
                         }
                       }
-                      if (i != results.length) loadAlbum(results[i].data.uri);
-                      else  $("#multiple-tracks-list").html(searchTerm+" doesn't seem playable on Spotify. Sorry!");
+                      if (i != results.length) {
+                        if (artist != "all") musicData["artists"][artist][searchTerm].uri = results[i].data.uri;
+                        loadAlbum(results[i].data.uri);
+                      }
+                      else  $("#multiple-tracks-list").html(searchTerm+" doesn't seem playable on Spotify. Sorry!<button style='background:#C70445' id='removeAlbumUnlisted'>Remove Album</button>");
                     }
-                    else  $("#multiple-tracks-list").html(searchTerm+" doesn't seem playable on Spotify. Sorry!");
+                    else  $("#multiple-tracks-list").html(searchTerm+" doesn't seem playable on Spotify. Sorry!<button style='background:#C70445' id='removeAlbumUnlisted'>Remove Album</button>");
+              $("#removeAlbumUnlisted").on('click', function(){ console.log("remove album");removeAlbum(); });
                 });
                 search.appendNext();
               }
@@ -142,9 +125,10 @@
                 delete currList;
                 currList = new views.List(myAlbum);
                 currList.node.classList.add('sp-light');
-                $("#multiple-tracks-list").html("");
-                document.getElementById('multiple-tracks-list').appendChild(currList.node);
+                $("#multiple-tracks-list").html("<button style='background:#C70445' id='removeAlbum'>Remove Album</button>");
+                document.getElementById('multiple-tracks-list').insertBefore(currList.node,document.getElementById('multiple-tracks-list').firstChild);
               };
+
               var loadSpotify = function(uri){
 
               var toplist = new models.Toplist();
@@ -162,6 +146,73 @@
 
               toplist.run();
               }();
+
+              var removeAlbumFromList = function(removeArtist, artistName){
+                $("#albumSelect option:selected").remove();
+                var artSelect = $("#artistSelect option:selected").val();
+                if (removeArtist){
+                  $("#artistSelect option[value='"+artistName+"']").remove();
+                }
+              };
+
+              var removeAlbum = function(){
+                var artSel = $("#artistSelect option:selected").val();
+                var albSel = $("#albumSelect option:selected").val();
+                $("#multiple-track-list").html("");
+                if (artSel != "all"){
+                  delete musicData.artists[artSel][albSel];
+                  if (jQuery.isEmptyObject(musicData.artists[artSel])) { 
+                      delete musicData.artists[artSel];
+                      removeAlbumFromList(true, artSel);
+                  } else {
+                    removeAlbumFromList(false);
+                  }
+                } else {
+                  // figure out artist from musicData
+                  var obj = _(musicData.artists).find(function(o){ return _.chain(o).keys().contains(t).value()  });
+
+                }
+
+              };
+
+              var init = function(){
+
+              if (localStorage.getItem("lib") != null) {
+                musicData = JSON.parse(localStorage.getItem("lib"));
+                loadLibrary();
+              }
+              $("#hit-lfm").click(function(){ loadLFM( $("#lfm-name").val() ) });
+              $("#save-lib").click(function(){
+                localStorage.setItem("lib", JSON.stringify(musicData));
+              });
+              $("#load-lib").click(function(){
+                musicData = JSON.parse(localStorage.getItem("lib"));
+                if (!jQuery.isEmptyObject(musicData.artists)){
+                  loadLibrary();
+                }
+              });
+
+                  $('#artistSelect').on('change', function() {
+                    selectArtist(this.value);
+                  });
+                  $('#albumSelect').on('change', function() {
+                      console.log(this);
+                      var data_uri = $("#albumSelect option:selected").attr("data-uri");
+                      if (data_uri != "undefined") { 
+                        console.log("loading uri: "+ data_uri);
+                        loadAlbum(data_uri);
+                      }
+                      else {
+                        console.log("searching for "+this.value);
+                        searchAlbum(this.value, $("#artistSelect").val());
+                      }
+                  });
+                  $("#albumSelect").on('dblclick', function(){
+                     console.log(currList); 
+                   setTimeout(function(){models.player.playTrackWithContext(false, myAlbum, -1)}, 200);
+                   });
+              };
+              init();
             });
           </script>
     </body>
