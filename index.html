@@ -23,12 +23,11 @@
         <div id="wrapper">
             <div id="index" class="section">
                 <h1 id="title">MyTunes Library</h1>
-                <input type="text" name="lfm-name" id="lfm-name" placeholder="Last.fm Username" />
-                <button id="hit-lfm">Get Music</button>
+                <div id="headerButtons">
                 <button id="save-lib">Save Library</button>
                 <button id="load-lib">Load Library</button>
                 <button id="add-music">Add Music</button>
-                <span id="lfmFail" style="color:red"></span>
+                </div>
                 <select style="width:50%" id="artistSelect" size="8">
                 </select>
                 <select id="albumSelect" style="width:49%" size="8">
@@ -43,6 +42,9 @@
               var currList;
               var myAlbum;
           $(document).ready(function(){
+              var saveLib = function(){
+                localStorage.setItem("lib", JSON.stringify(musicData));
+              };
               // api key 1c73c492595e398bb2ee64465c67026a
               var loadLFM = function(userName){
               $.ajax({
@@ -140,23 +142,6 @@
                 document.getElementById('multiple-tracks-list').insertBefore(currList.node,document.getElementById('multiple-tracks-list').firstChild);
               };
 
-              var loadSpotify = function(uri){
-
-              var toplist = new models.Toplist();
-              toplist.matchType = models.TOPLISTMATCHES.ALBUMS;
-            //  toplist.userName = feelthebeat96;// TOPLISTUSER_CURRENT;
-              
-
-              toplist.observe(models.EVENT.CHANGE, function() {
-
-                  console.log("Spotify album toplist:")
-                    toplist.results.forEach(function(album) {
-                          console.log(album);
-                            });
-                    });
-
-              toplist.run();
-              }();
 
               var removeAlbumFromList = function(removeArtist, artistName){
                 $("#albumSelect option:selected").remove();
@@ -194,25 +179,10 @@
                   } else {
                     removeAlbumFromList(false);
                   }
+                  saveLib();
               };
 
-              var addMusic = function(){
-
-                $("#multiple-tracks-list").html('<h4>Add Music</h4><input type="search" id="searchField" size="50" placeholder="Enter Search Terms" /><button id="searchBtn">Search</button><ul id="searchResults"></ul>');
-                $("#searchBtn").on('click', function(){
-
-                  var searchTermQuery = $("#searchField").val();
-                  var search = new models.Search(searchTermQuery, {
-                    "searchArtists" : false,
-                    "searchTracks": false,
-                    "searchPlaylists": false,
-                    "pageSize": 25
-                    });
-                  search.localResults = models.LOCALSEARCHRESULTS.APPEND;
-                  search.observe(models.EVENT.CHANGE, function() {
-
-                    var results = search.albums;
-                    console.log(results);
+              var loadSearchResults = function(results){
                     $("#searchResults").html("");
                     _(results).each(function(album){
                       $("#searchResults").append("<li id='"+album.data.uri+"'>"+album.data.artist.name+" - "+album.data.name+"<button style='background:#7985D4;border-radius:5px' class='addAlbum' data-album='"+album.data.name+"' data-artist='"+album.data.artist.name+"' data-uri='"+album.data.uri+"'>Add</button></li>");
@@ -232,20 +202,60 @@
                             }
                         };
                         }
+                        saveLib();
                       });
+              };
+
+              var loadSpotify = function(){
+
+              var toplist = new models.Toplist();
+              toplist.matchType = models.TOPLISTMATCHES.ALBUMS;
+            //  toplist.userName = feelthebeat96;// TOPLISTUSER_CURRENT;
+
+              toplist.observe(models.EVENT.CHANGE, function() {
+
+                  console.log("Spotify album toplist:")
+                    toplist.results.forEach(function(album) {
+                          console.log(album);
+                            });
+                    loadSearchResults(toplist.results);
+                    });
+
+              toplist.run();
+              };
+              var addMusic = function(){
+                $("#multiple-tracks-list").html('<h4>Add Music</h4> <input type="text" name="lfm-name" id="lfm-name" placeholder="Last.fm Username" /> <button id="hit-lfm">Autoload</button> <input type="search" id="searchField" size="50" placeholder="Enter Search Terms" /><button id="searchBtn">Search</button><button id="loadSpotify">Load from Spotify</button> <span id="lfmFail" style="color:red"></span> <ul id="searchResults"></ul>');
+                
+              $("#hit-lfm").on('click', function(){ loadLFM( $("#lfm-name").val() ) });
+              $("#loadSpotify").on('click', function(){ console.log("test"); loadSpotify();});
+                $("#searchBtn").on('click', function(){
+
+                  var searchTermQuery = $("#searchField").val();
+                  var search = new models.Search(searchTermQuery, {
+                    "searchArtists" : false,
+                    "searchTracks": false,
+                    "searchPlaylists": false,
+                    "pageSize": 25
+                    });
+                  search.localResults = models.LOCALSEARCHRESULTS.APPEND;
+                  search.observe(models.EVENT.CHANGE, function() {
+
+                    var results = search.albums;
+                    console.log(results);
+                    loadSearchResults(results);
                     });
                   search.appendNext();
                 });
               };
+
               var init = function(){
 
               if (localStorage.getItem("lib") != null) {
                 musicData = JSON.parse(localStorage.getItem("lib"));
                 loadLibrary();
               }
-              $("#hit-lfm").click(function(){ loadLFM( $("#lfm-name").val() ) });
               $("#save-lib").click(function(){
-                localStorage.setItem("lib", JSON.stringify(musicData));
+                  saveLib();
               });
               $("#load-lib").click(function(){
                 musicData = JSON.parse(localStorage.getItem("lib"));
