@@ -8,17 +8,23 @@
 
         <!-- Project CSS files -->
         <link rel="stylesheet" type="text/css" href="css/main.css">
+        <style>
+          #title { 
+            font-size: 36px;
+            padding-top: 30px;
+            padding-left: 15px;
+          }
+        </style>
     </head>
     <body>
         <div id="wrapper">
             <div id="index" class="section">
-                <h1>MyTunes Library</h1>
+                <h1 id="title">MyTunes Library</h1>
                 <input type="text" name="lfm-name" id="lfm-name" placeholder="Last.fm Username" />
                 <button id="hit-lfm">Get Music</button>
                 <button id="save-lib">Save Library</button>
                 <button id="load-lib">Load Library</button>
                 <span id="lfmFail" style="color:red"></span>
-                <h1>Top Music:</h1>
                 <select style="width:50%" id="artistSelect" size="8">
                 </select>
                 <select id="albumSelect" style="width:49%" size="8">
