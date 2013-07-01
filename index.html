@@ -113,10 +113,10 @@
                         if (artist != "all") musicData["artists"][artist][searchTerm].uri = results[i].data.uri;
                         loadAlbum(results[i].data.uri);
                       }
-                      else  $("#multiple-tracks-list").html(searchTerm+" doesn't seem playable on Spotify. Sorry!<button style='background:#C70445' id='removeAlbumUnlisted'>Remove Album</button>");
+                      else  $("#multiple-tracks-list").html(searchTerm+" doesn't seem playable on Spotify. Sorry!<button style='background:#C70445' id='removeAlbum'>Remove Album</button>");
                     }
-                    else  $("#multiple-tracks-list").html(searchTerm+" doesn't seem playable on Spotify. Sorry!<button style='background:#C70445' id='removeAlbumUnlisted'>Remove Album</button>");
-              $("#removeAlbumUnlisted").on('click', function(){ console.log("remove album");removeAlbum(); });
+                    else  $("#multiple-tracks-list").html(searchTerm+" doesn't seem playable on Spotify. Sorry!<button style='background:#C70445' id='removeAlbum'>Remove Album</button>");
+              $("#removeAlbum").on('click', function(){ console.log("remove album");removeAlbum(); });
                 });
                 search.appendNext();
               }
@@ -126,6 +126,7 @@
                 currList = new views.List(myAlbum);
                 currList.node.classList.add('sp-light');
                 $("#multiple-tracks-list").html("<button style='background:#C70445' id='removeAlbum'>Remove Album</button>");
+              $("#removeAlbum").on('click', function(){ console.log("remove album");removeAlbum(); });
                 document.getElementById('multiple-tracks-list').insertBefore(currList.node,document.getElementById('multiple-tracks-list').firstChild);
               };
 
@@ -158,8 +159,24 @@
               var removeAlbum = function(){
                 var artSel = $("#artistSelect option:selected").val();
                 var albSel = $("#albumSelect option:selected").val();
-                $("#multiple-track-list").html("");
-                if (artSel != "all"){
+                $("#multiple-tracks-list").html("");
+                if (artSel == "all"){
+                  // figure out artist from musicData
+                  _(musicData.artists).find(function(o, key){ 
+                      if (_.chain(o).keys().contains(albSel).value()) {  
+                      artSel = key;
+                      return true;
+                      }
+                  });
+
+                }
+
+                  // something went wrong
+                  if (artSel == "all"){
+                    console.log('remove error '+albSel); 
+                    return;
+                  }
+
                   delete musicData.artists[artSel][albSel];
                   if (jQuery.isEmptyObject(musicData.artists[artSel])) { 
                       delete musicData.artists[artSel];
@@ -167,12 +184,6 @@
                   } else {
                     removeAlbumFromList(false);
                   }
-                } else {
-                  // figure out artist from musicData
-                  var obj = _(musicData.artists).find(function(o){ return _.chain(o).keys().contains(t).value()  });
-
-                }
-
               };
 
               var init = function(){
