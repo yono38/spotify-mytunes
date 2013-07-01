@@ -14,6 +14,9 @@
             padding-top: 30px;
             padding-left: 15px;
           }
+          #searchField {
+            background-position: 7px 2px;
+          }
         </style>
     </head>
     <body>
@@ -24,6 +27,7 @@
                 <button id="hit-lfm">Get Music</button>
                 <button id="save-lib">Save Library</button>
                 <button id="load-lib">Load Library</button>
+                <button id="add-music">Add Music</button>
                 <span id="lfmFail" style="color:red"></span>
                 <select style="width:50%" id="artistSelect" size="8">
                 </select>
@@ -192,6 +196,31 @@
                   }
               };
 
+              var addMusic = function(){
+
+                $("#multiple-tracks-list").html('<h4>Add Music</h4><input type="search" id="searchField" size="50" placeholder="Enter Search Terms" /><button id="searchBtn">Search</button><ul id="searchResults"></ul>');
+                $("#searchBtn").on('click', function(){
+
+                  var searchTermQuery = $("#searchField").val();
+                  var search = new models.Search(searchTermQuery, {
+                    "searchArtists" : false,
+                    "searchTracks": false,
+                    "searchPlaylists": false,
+                    "pageSize": 25
+                    });
+                  search.localResults = models.LOCALSEARCHRESULTS.APPEND;
+                  search.observe(models.EVENT.CHANGE, function() {
+
+                    var results = search.albums;
+                    console.log(results);
+                    $("#searchResults").html("");
+                    _(results).each(function(album){
+                      $("#searchResults").append("<li id='"+album.data.uri+"'>"+album.data.artist.name+" - "+album.data.name+"<button style='background:#7985D4;border-radius:5px' class='addAlbum' data-uri='"+album.data.uri+"'>Add</button></li>");
+                      });
+                    });
+                  search.appendNext();
+                });
+              };
               var init = function(){
 
               if (localStorage.getItem("lib") != null) {
@@ -208,6 +237,8 @@
                   loadLibrary();
                 }
               });
+
+              $("#add-music").click(function(){addMusic()});
 
                   $('#artistSelect').on('change', function() {
                     selectArtist(this.value);
