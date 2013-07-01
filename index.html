@@ -17,12 +17,18 @@
           #searchField {
             background-position: 7px 2px;
           }
+          #banner {
+            width: 100%;
+          }
+          #headerButtons button {
+            border-radius: 8px;
+          }
         </style>
     </head>
     <body>
         <div id="wrapper">
             <div id="index" class="section">
-                <h1 id="title">MyTunes Library</h1>
+              <img id="banner" src="img/myTunes_banner.jpg" />
                 <div id="headerButtons">
                 <button id="save-lib">Save Library</button>
                 <button id="load-lib">Load Library</button>
@@ -224,7 +230,7 @@
               toplist.run();
               };
               var addMusic = function(){
-                $("#multiple-tracks-list").html('<h4>Add Music</h4> <input type="text" name="lfm-name" id="lfm-name" placeholder="Last.fm Username" /> <button id="hit-lfm">Autoload</button> <input type="search" id="searchField" size="50" placeholder="Enter Search Terms" /><button id="searchBtn">Search</button><button id="loadSpotify">Load from Spotify</button> <span id="lfmFail" style="color:red"></span> <ul id="searchResults"></ul>');
+                $("#multiple-tracks-list").html('<h4>Add Music</h4> <div><input type="text" name="lfm-name" id="lfm-name" placeholder="Last.fm Username" /> <a href="#" id="hit-lfm"><img alt="lfm_load" src="img/lfm_new_wbutton.png" /></a> ||  <button id="loadSpotify">Load from Spotify</button> </div> <input type="search" id="searchField" size="50" placeholder="Enter Search Terms" /><button id="searchBtn">Search</button> <span id="lfmFail" style="color:red"></span> <ul id="searchResults"></ul>');
                 
               $("#hit-lfm").on('click', function(){ loadLFM( $("#lfm-name").val() ) });
               $("#loadSpotify").on('click', function(){ console.log("test"); loadSpotify();});
