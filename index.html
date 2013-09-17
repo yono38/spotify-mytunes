@@ -9,6 +9,7 @@
         <!-- Project CSS files -->
         <link rel="stylesheet" type="text/css" href="css/main.css">
         <style>
+        
           #title { 
             font-size: 36px;
             padding-top: 30px;
@@ -20,9 +21,51 @@
           #banner {
             width: 100%;
           }
+          #multiple-tracks-list {
+            margin-left: 15px;
+            margin-top: 5px;
+          }
           #headerButtons button {
             border-radius: 8px;
           }
+          .sp-list.sp-light .sp-track:not(.sp-track-selected) :-webkit-any(.sp-track-field-duration, .sp-track-field-number){
+            color: #EBDDE1;
+          }
+          li {
+            color: #331B23;
+            font-weight: 600;
+            text-shadow: 0 1px 0 rgba(92, 69, 77, .77);
+          }
+          .sp-list .sp-item > span {
+            color: #EBDDE1;
+          }
+          html, body {
+          background-color: #786B6F;
+         font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
+         font-weight: 300;
+          }
+          #artistSelect, #albumSelect, input[type="text"], input[type="search"] {
+            background: #D1CDCE;
+          }
+           ::-webkit-input-placeholder { 
+                color: #7A7879; text-overflow: ellipsis; 
+            }
+            #addMusicTitle {
+            color:#EBDFE3;
+            font-size: 23px;
+            }
+            #removeAlbum {
+              border: none;
+              padding: 5px;
+              background: #C70445;
+            }
+            li:nth-child(2n) {  
+               background-color:#827076;
+            } 
+/*li:nth-child(4n) {  
+   background-color:yellow;
+} */
+
         </style>
     </head>
     <body>
@@ -259,7 +302,7 @@
              };
 
               var addMusic = function(){
-                $("#multiple-tracks-list").html('<h4>Add Music</h4> <div><input type="text" name="lfm-name" id="lfm-name" placeholder="Last.fm Username" /> <a href="#" id="hit-lfm"><img alt="lfm_load" src="img/lfm_new_wbutton.png" /></a> ||  <button id="loadSpotify">Load from Spotify</button> </div> <input type="search" id="searchField" size="50" placeholder="Enter Search Terms" /><button id="searchBtn">Search</button> <span id="lfmFail" style="color:red"></span> <ul id="searchResults"></ul>');
+                $("#multiple-tracks-list").html('<h1 id="addMusicTitle">Add Music</h1> <div><input type="text" name="lfm-name" id="lfm-name" placeholder="Last.fm Username" /> <a href="#" id="hit-lfm"><img alt="lfm_load" src="img/lfm_new_wbutton.png" /></a> ||  <button id="loadSpotify">Load from Spotify</button> </div> <input type="search" id="searchField" size="50" placeholder="Enter Search Terms" /><button id="searchBtn">Search</button> <span id="lfmFail" style="color:red"></span> <ul id="searchResults"></ul>');
                 
               $("#hit-lfm").on('click', function(){ loadLFM( $("#lfm-name").val() ) });
               $("#loadSpotify").on('click', function(){ console.log("test"); loadSpotify();});
@@ -288,6 +331,9 @@
               if (localStorage.getItem("lib") != null) {
                 musicData = JSON.parse(localStorage.getItem("lib"));
                 loadLibrary();
+              } else {
+              // load up add music page if empty library
+                addMusic();
               }
               $("#save-lib").click(function(){
                   saveLib();
