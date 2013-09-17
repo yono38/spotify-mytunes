@@ -11,5 +11,4 @@ Restart spotify and enter spotify:app:my-tunes into the searchbar
 
 ==TODO==
 
-- Import/Export library
 - Multiple Library Profiles

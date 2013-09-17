@@ -26,7 +26,8 @@
   },
 	"RequiredInterface": 1,
 	"RequiredPermissions": [
-	    "http://amsterdam.last.fm"
+	    "http://amsterdam.last.fm",
+            "http://pastebin.com"
 	],
 	"SupportedLanguages": [
 		"en"

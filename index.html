@@ -33,6 +33,8 @@
                 <button id="save-lib">Save Library</button>
                 <button id="load-lib">Load Library</button>
                 <button id="add-music">Add Music</button>
+                <button id="import-lib">Import Library</button>
+                <button id="export-lib">Export Library</button>
                 </div>
                 <select style="width:50%" id="artistSelect" size="8">
                 </select>
@@ -229,6 +231,33 @@
 
               toplist.run();
               };
+
+             var exportLibrary = function(){
+                $.post('http://pastebin.com/api/api_post.php', {"api_dev_key": "ad721fa8d2d935c4b1258cddcb11d0d0", "api_paste_code" : localStorage.getItem("lib"), "api_option" : "paste"}, function(resp){
+                        console.log(resp);
+                    if (resp.substring(0,3) == "Bad") alert(resp.responseText);
+                    else {
+                        alert("Your library is available at: " + resp);
+                    }
+                });
+             };
+
+             var importLibrary = function(){
+                 $("#multiple-tracks-list").html("Paste your library here: <br><textarea id='libData' rows='20' cols='100'></textarea><button id='importReady'>Import</button>");
+                 $("#multiple-tracks-list").focus();
+                 $("#importReady").click(function(){
+                         if ($("#libData").val() != "") {
+                            localStorage.setItem("lib-backup", localStorage.getItem("lib"));
+                            localStorage.setItem("lib", $("#libData").val());
+                            $("#multiple-tracks-list").html("Import Successful");
+                            loadLibrary();
+                         } else {
+                            alert("Import data cannot be blank");
+                        }
+                 });
+
+             };
+
               var addMusic = function(){
                 $("#multiple-tracks-list").html('<h4>Add Music</h4> <div><input type="text" name="lfm-name" id="lfm-name" placeholder="Last.fm Username" /> <a href="#" id="hit-lfm"><img alt="lfm_load" src="img/lfm_new_wbutton.png" /></a> ||  <button id="loadSpotify">Load from Spotify</button> </div> <input type="search" id="searchField" size="50" placeholder="Enter Search Terms" /><button id="searchBtn">Search</button> <span id="lfmFail" style="color:red"></span> <ul id="searchResults"></ul>');
                 
@@ -269,7 +298,12 @@
                   loadLibrary();
                 }
               });
-
+              $("#export-lib").click(function(){
+                  exportLibrary();
+              });
+              $("#import-lib").click(function(){
+                  importLibrary();
+              });
               $("#add-music").click(function(){addMusic()});
 
                   $('#artistSelect').on('change', function() {
